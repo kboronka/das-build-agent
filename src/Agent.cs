@@ -5,6 +5,7 @@ using System.Threading;
 
 using HttpPack.Server;
 using HttpPack.Fsm;
+using DasBuildAgent.Models;
 
 namespace DasBuildAgent
 {
@@ -28,7 +29,7 @@ namespace DasBuildAgent
         {
             loopStopped = false;
             loopStopRequested = false;
-            state = States.WaitingForServer;
+            state = States.Uninitialized;
 
             stateMachineThread = new Thread(Loop)
             {
@@ -67,21 +68,27 @@ namespace DasBuildAgent
 
         private enum States
         {
-            WaitingForServer,
             Uninitialized,
+            Unregistered,
+            Registered,
             Idle,
             Stopping,
             Stopped
+        }
+
+        public enum Commands
+        {
+            StartTask
         }
 
         public void ProcessStateMachine()
         {
             switch (state)
             {
-                case States.WaitingForServer:
+                case States.Uninitialized:
                     state = CheckAutomationServer();
                     break;
-                case States.Uninitialized:
+                case States.Unregistered:
                     state = Initialize();
                     break;
                 case States.Idle:
@@ -118,7 +125,7 @@ namespace DasBuildAgent
             this.BuildServer = Environment.GetEnvironmentVariable("DAS_BUILD_SERVER") ?? @"http://localhost:4600";
             // TODO: check if automation server is on-line
 
-            return States.Uninitialized;
+            return States.Unregistered;
         }
 
         private States ProcessCommands()
@@ -126,6 +133,17 @@ namespace DasBuildAgent
             if (loopStopRequested)
             {
                 return States.Stopping;
+            }
+            else if (CommandQueue.Available)
+            {
+                var command = CommandQueue.DequeueCommand();
+                switch ((Commands)command.CommandSignal)
+                {
+                    case Commands.StartTask:
+                        var taskStartRequest = (TaskStartRequest)command.Parameters[0];
+                        // TODO: do something here
+                        break;
+                }
             }
 
             return States.Idle;

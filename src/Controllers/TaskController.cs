@@ -4,6 +4,7 @@ using System.Text;
 
 using HttpPack.Json;
 using HttpPack.Server;
+using DasBuildAgent.Models;
 
 namespace DasBuildAgent.Controllers
 {
@@ -14,8 +15,24 @@ namespace DasBuildAgent.Controllers
         [IsPrimaryAction]
         public static HttpContent Index(HttpRequest request)
         {
-            var sample = new JsonKeyValuePairs();
-            sample.Add("test", "ok");
+            var sample = new JsonKeyValuePairs
+            {
+                { "test", "ok" }
+            };
+
+            return new HttpJsonContent(sample);
+        }
+
+        public static HttpContent Start(HttpRequest request)
+        {
+            var agent = (Agent)request.UserData;
+            var taskStartRequest = new TaskStartRequest(request, agent.Secret);
+            agent.CommandQueue.QueueCommand(Agent.Commands.StartTask, taskStartRequest);
+
+            var sample = new JsonKeyValuePairs
+            {
+                { "message", "task starting" }
+            };
 
             return new HttpJsonContent(sample);
         }
