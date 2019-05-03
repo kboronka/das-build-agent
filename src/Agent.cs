@@ -68,7 +68,7 @@ namespace DasBuildAgent
         private enum States
         {
             WaitingForServer,
-            Uninitilized,
+            Uninitialized,
             Idle,
             Stopping,
             Stopped
@@ -81,8 +81,8 @@ namespace DasBuildAgent
                 case States.WaitingForServer:
                     state = CheckAutomationServer();
                     break;
-                case States.Uninitilized:
-                    state = Initilaize();
+                case States.Uninitialized:
+                    state = Initialize();
                     break;
                 case States.Idle:
                     state = ProcessCommands();
@@ -102,7 +102,7 @@ namespace DasBuildAgent
             return States.Stopped;
         }
 
-        private States Initilaize()
+        private States Initialize()
         {
             this.Port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "4700");
             this.Secret = Environment.GetEnvironmentVariable("SECRET") ?? "secret-goes-here";
@@ -118,7 +118,7 @@ namespace DasBuildAgent
             this.BuildServer = Environment.GetEnvironmentVariable("DAS_BUILD_SERVER") ?? @"http://localhost:4600";
             // TODO: check if automation server is on-line
 
-            return States.Uninitilized;
+            return States.Uninitialized;
         }
 
         private States ProcessCommands()
