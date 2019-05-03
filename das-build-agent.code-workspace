@@ -1,0 +1,32 @@
+{
+  "folders": [{
+    "path": "."
+  }],
+  "settings": {
+    "editor.renderWhitespace": "all",
+    "editor.formatOnPaste": false,
+    "editor.rulers": [120],
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.detectIndentation": false,
+    "html.suggest.html5": true,
+    "beautify.config": {
+      "brace_style": "collapse,preserve-inline",
+      "wrap_attributes": "preserve-aligned",
+      "indent_size": 2
+    },
+    "html.format.enable": true,
+    "html.format.wrapLineLength": 120,
+    "html.format.wrapAttributes": "auto",
+    "htmlhint.options": {
+      "attr-lowercase": false
+    },
+    "cSpell.words": [
+      "dbname",
+      "htmlhint",
+      "jira",
+      "upsert"
+    ]
+  }
+}
