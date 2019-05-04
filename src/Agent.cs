@@ -13,6 +13,7 @@ namespace DasBuildAgent
     {
         private HttpServer server;
         private States state;
+        private Task task;
 
         public Agent()
         {
@@ -72,6 +73,11 @@ namespace DasBuildAgent
             Unregistered,
             Registered,
             Idle,
+
+            StartTask,
+            TaskRunning,
+            TaskComplete,
+
             Stopping,
             Stopped
         }
@@ -92,6 +98,19 @@ namespace DasBuildAgent
                     state = Initialize();
                     break;
                 case States.Idle:
+                    state = ProcessCommands();
+                    break;
+                case States.StartTask:
+                    // FIXME: extract into a method
+                    task.Start();
+                    state = States.TaskRunning;
+                    break;
+                case States.TaskRunning:
+                    // TODO: not implemented yet
+                    state = ProcessCommands();
+                    break;
+                case States.TaskComplete:
+                    // TODO: not implemented yet
                     state = ProcessCommands();
                     break;
                 case States.Stopping:
@@ -141,8 +160,8 @@ namespace DasBuildAgent
                 {
                     case Commands.StartTask:
                         var taskStartRequest = (TaskStartRequest)command.Parameters[0];
-                        // TODO: do something here
-                        break;
+                        this.task = new Task(this, taskStartRequest);
+                        return States.StartTask;
                 }
             }
 

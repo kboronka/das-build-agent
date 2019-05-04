@@ -7,7 +7,7 @@ using HttpPack.Json;
 
 namespace DasBuildAgent.Models
 {
-    class TaskStartRequest
+    public class TaskStartRequest
     {
         public TaskStartRequest(HttpRequest request, string secret)
         {
