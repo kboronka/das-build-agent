@@ -151,21 +151,22 @@ namespace DasBuildAgent
             this.Type = Environment.GetEnvironmentVariable("AGENT_TYPE") ?? @"undefined type";
             this.Secret = Environment.GetEnvironmentVariable("SECRET") ?? "secret-goes-here";
             this.Sandbox = Environment.GetEnvironmentVariable("SANDBOX_PATH") ?? @"c:\temp\das-build-agent\";
-            this.BuildServer = Environment.GetEnvironmentVariable("DAS_BUILD_SERVER") ?? @"http://localhost:4600";
+            this.BuildServer = Environment.GetEnvironmentVariable("DAS_BUILD_SERVER") ?? @"http://localhost:4000";
         }
 
         private States RegisterAgent()
         {
             var uri = Url.Combine(this.BuildServer, "/agents/register");
-            var req = new RegisterAgentRequest();
+            var req = new RegisterAgentRequest(this);
             var auth = GetJwtToken();
 
             var client = new HttpClient<JsonKeyValuePairs>();
             var res = client.Post(uri, req, auth);
 
-            if (res.Code == 200 || res.Code == 201)
+            if (res.Code == 201)
             {
-                this.ID = (string)res.Body["_id"];
+                var resAgent = (JsonKeyValuePairs)res.Body["agent"];
+                this.ID = (string)resAgent["_id"];
                 return States.Idle;
             }
 

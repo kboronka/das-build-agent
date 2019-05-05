@@ -8,17 +8,22 @@ namespace DasBuildAgent.Models
 {
     public class RegisterAgentRequest : IJsonObject
     {
-        public RegisterAgentRequest()
+        private readonly Agent agent;
+        public RegisterAgentRequest(Agent agent)
         {
-
+            this.agent = agent;
         }
 
         public JsonKeyValuePairs KeyValuePairs
         {
             get
             {
-                var kvp = new JsonKeyValuePairs();
-                // TODO: implement
+                var kvp = new JsonKeyValuePairs()
+                {
+                    {"name", agent.Name},
+                    {"type", agent.Type},
+                    {"port", agent.Port}
+                };
 
                 return kvp;
             }
