@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-using HttpPack.Server;
-using HttpPack.Json;
+using HttpPack;
 
 namespace DasBuildAgent.Models
 {

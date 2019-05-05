@@ -1,6 +1,6 @@
 ﻿using System;
 
-using HttpPack.Server;
+using HttpPack;
 
 namespace DasBuildAgent
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-using HttpPack.Server;
+using HttpPack;
 using HttpPack.Fsm;
 using DasBuildAgent.Models;
 
@@ -20,10 +20,13 @@ namespace DasBuildAgent
 
         }
 
+        public string ID { get; private set; }
         public int Port { get; private set; }
         public string Secret { get; private set; }
         public string Sandbox { get; private set; }
         public string BuildServer { get; private set; }
+        public string Name { get; private set; }
+        public string Type { get; private set; }
 
 
         public override void Start()
@@ -60,8 +63,9 @@ namespace DasBuildAgent
                     ProcessStateMachine();
                     Thread.Sleep(100);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                     Thread.Sleep(5000);
                 }
             }
@@ -92,10 +96,10 @@ namespace DasBuildAgent
             switch (state)
             {
                 case States.Uninitialized:
-                    state = CheckAutomationServer();
+                    state = Initialize();
                     break;
                 case States.Unregistered:
-                    state = Initialize();
+                    state = RegisterAgent();
                     break;
                 case States.Idle:
                     state = ProcessCommands();
@@ -130,21 +134,56 @@ namespace DasBuildAgent
 
         private States Initialize()
         {
-            this.Port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "4700");
-            this.Secret = Environment.GetEnvironmentVariable("SECRET") ?? "secret-goes-here";
-            this.Sandbox = Environment.GetEnvironmentVariable("SANDBOX_PATH") ?? @"c:\temp";
+            ReadEnviormentVariables();
+            StartHttpServer();
+            return States.Unregistered;
+        }
 
+        private void StartHttpServer()
+        {
             server = new HttpServer(this.Port, null, this);
+        }
+
+        private void ReadEnviormentVariables()
+        {
+            this.Port = int.Parse(Environment.GetEnvironmentVariable("PORT") ?? "4700");
+            this.Name = Environment.GetEnvironmentVariable("AGENT_NAME") ?? @"undefined name";
+            this.Type = Environment.GetEnvironmentVariable("AGENT_TYPE") ?? @"undefined type";
+            this.Secret = Environment.GetEnvironmentVariable("SECRET") ?? "secret-goes-here";
+            this.Sandbox = Environment.GetEnvironmentVariable("SANDBOX_PATH") ?? @"c:\temp\das-build-agent\";
+            this.BuildServer = Environment.GetEnvironmentVariable("DAS_BUILD_SERVER") ?? @"http://localhost:4600";
+        }
+
+        private States RegisterAgent()
+        {
+            var uri = Url.Combine(this.BuildServer, "/agents/register");
+            var req = new RegisterAgentRequest();
+            var auth = GetJwtToken();
+
+            var client = new HttpClient<JsonKeyValuePairs>();
+            var res = client.Post(uri, req, auth);
+
+            if (res.Code == 200 || res.Code == 201)
+            {
+                this.ID = (string)res.Body["_id"];
+                return States.Idle;
+            }
 
             return States.Idle;
         }
 
-        private States CheckAutomationServer()
+        private string GetJwtToken()
         {
-            this.BuildServer = Environment.GetEnvironmentVariable("DAS_BUILD_SERVER") ?? @"http://localhost:4600";
-            // TODO: check if automation server is on-line
+            var payload = new JsonKeyValuePairs()
+            {
+                {"sub", "das-build-agent"},
+                {"name", this.Name},
+                {"port", this.Port},
+            };
 
-            return States.Unregistered;
+            var jwt = new Jwt(payload, this.Secret);
+            var auth = "JWT " + jwt.Token;
+            return auth;
         }
 
         private States ProcessCommands()

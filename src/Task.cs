@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-using HttpPack.Server;
+using HttpPack;
 using HttpPack.Fsm;
 using DasBuildAgent.Models;
 
